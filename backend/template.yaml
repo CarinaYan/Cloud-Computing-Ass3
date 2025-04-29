@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lambda-execution-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  IndexPhotosLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: index-photos
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.9
+      Code:
+        S3Bucket: ccbd-code-bucket
+        S3Key: index-photos-300431ef-bd9d-4121-8b88-ac629c3b0dea.zip
+      Timeout: 30
+      MemorySize: 256
+
+  SearchPhotosLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: search-photos
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.9
+      Code:
+        S3Bucket: ccbd-code-bucket
+        S3Key: search-photos-87fa1817-3fb0-45e6-9973-f7b6013b4c12.zip
+      Timeout: 30
+      MemorySize: 256
+
+Outputs:
+
+  IndexPhotosFunctionName:
+    Description: "Index Photos Lambda Function Name"
+    Value: !Ref IndexPhotosLambda
+
+  SearchPhotosFunctionName:
+    Description: "Search Photos Lambda Function Name"
+    Value: !Ref SearchPhotosLambda
