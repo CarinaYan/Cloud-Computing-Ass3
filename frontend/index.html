@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Photo Search App</title>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    .photo-grid img { height: 200px; margin: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Upload a Photo</h2>
+  <form id="uploadForm">
+    <input type="file" id="fileInput" required><br><br>
+    <input type="text" id="labelsInput" placeholder="Enter custom labels (comma-separated)" required><br><br>
+    <button type="submit">Upload Photo</button>
+  </form>
+
+  <hr>
+
+  <h2>Search Photos</h2>
+  <form id="searchForm">
+    <input type="text" id="searchQuery" placeholder="e.g., show me cats and dogs" required>
+    <button type="submit">Search</button>
+  </form>
+
+  <div class="photo-grid" id="results"></div>
+
+  <script>
+    const API_BASE = 'https://oeot4rw0pb.execute-api.us-east-1.amazonaws.com/prod';
+
+    // Upload photo
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = document.getElementById('fileInput').files[0];
+      const labels = document.getElementById('labelsInput').value;
+
+      const url = `${API_BASE}/photos/${encodeURIComponent(file.name)}`;
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+          'x-amz-meta-customLabels': labels
+        },
+        body: file
+      });
+
+      if (res.ok) {
+        alert('Photo uploaded successfully!');
+      } else {
+        const err = await res.text();
+        alert('Upload failed: ' + err);
+      }
+    });
+
+    // Search photos
+    document.getElementById('searchForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = document.getElementById('searchQuery').value;
+
+      console.log('Search query is:', query);
+
+      //fetch(`https://oeot4rw0pb.execute-api.us-east-1.amazonaws.com/prod/search?q=${query}`)
+      //  .then(response => response.json())
+      //  .then(data => {
+      //    console.log('Returned search data:', data);  // 你之前加过了
+      //    data.forEach(photo => {
+      //      const img = document.createElement('img');
+      //      img.src = photo.url;
+      //      container.appendChild(img);
+      //    });
+      //  })
+      //  .catch(error => console.error('Search failed:', error));
+      
+
+      const url = `${API_BASE}/search?q=${encodeURIComponent(query)}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+      
+      console.log('Returned search data:', data);
+
+      data.forEach(photo => {
+        const img = document.createElement('img');
+        img.src = photo.url;
+        container.appendChild(img);
+      });
+    });
+  </script>
+</body>
+</html>
